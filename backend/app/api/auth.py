@@ -11,6 +11,7 @@ from app.schemas.auth import (
     UserResponse,
 )
 from app.api.deps import get_current_user
+from app.services.analytics_service import track_event
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -39,6 +40,7 @@ def login(body: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
     token = create_access_token({"sub": user.id, "role": user.role})
+    track_event(db, "user_login", user_id=user.id)
     return TokenResponse(access_token=token)
 
 

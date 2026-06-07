@@ -106,6 +106,33 @@ export interface SendMessageResponse {
   answer: Message;
 }
 
+export interface OverviewStats {
+  total_users: number;
+  total_documents: number;
+  questions_today: number;
+  unanswered_count: number;
+  unanswered_percentage: number;
+}
+
+export interface PopularQuestion {
+  question: string;
+  count: number;
+}
+
+export interface UserActivity {
+  date: string;
+  active_users: number;
+}
+
+export const analyticsApi = {
+  overview: () => api.get<OverviewStats>("/api/analytics/overview").then((r) => r.data),
+  popularQuestions: (limit = 10) =>
+    api.get<PopularQuestion[]>("/api/analytics/popular-questions", { params: { limit } }).then((r) => r.data),
+  unanswered: () => api.get<Array<{ content: string; created_at: string }>>("/api/analytics/unanswered").then((r) => r.data),
+  userActivity: (days = 30) =>
+    api.get<UserActivity[]>("/api/analytics/user-activity", { params: { days } }).then((r) => r.data),
+};
+
 export const chatApi = {
   list: () => api.get<Chat[]>("/api/chats/").then((r) => r.data),
   create: () => api.post<Chat>("/api/chats/").then((r) => r.data),

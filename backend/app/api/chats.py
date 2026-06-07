@@ -15,6 +15,7 @@ from app.schemas.chat import (
     FeedbackRequest,
 )
 from app.services.rag_pipeline import answer_question
+from app.services.analytics_service import track_event
 
 router = APIRouter(prefix="/api/chats", tags=["chats"])
 
@@ -98,6 +99,10 @@ def send_message(
 
     db.commit()
     db.refresh(assistant_msg)
+
+    track_event(db, "question_asked", user_id=current_user.id, metadata={"question": body.content})
+    if not result["sources"]:
+        track_event(db, "unanswered_question", user_id=current_user.id, metadata={"question": body.content})
 
     return SendMessageResponse(
         message=MessageResponse.model_validate(user_msg),

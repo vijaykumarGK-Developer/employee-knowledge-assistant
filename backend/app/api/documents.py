@@ -9,6 +9,7 @@ from app.schemas.document import DocumentResponse, DocumentListResponse
 from app.utils.file_handler import validate_file, save_file
 from app.services.document_processor import process_document, reprocess_document as reprocess_doc
 from app.services.vector_store import delete_document_chunks
+from app.services.analytics_service import track_event
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -35,6 +36,7 @@ def upload_document(
     db.refresh(doc)
     process_document(doc.id)
     db.refresh(doc)
+    track_event(db, "document_uploaded", user_id=admin.id, metadata={"doc_id": doc.id, "title": doc.title})
     return DocumentResponse.model_validate(doc)
 
 
