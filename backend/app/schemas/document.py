@@ -1,0 +1,22 @@
+from datetime import datetime
+
+from pydantic import BaseModel
+
+
+class DocumentResponse(BaseModel):
+    id: str
+    title: str
+    file_type: str
+    department: str
+    uploaded_by: str
+    version: int
+    uploaded_at: datetime
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+class DocumentListResponse(BaseModel):
+    items: list[DocumentResponse]
+    total: int
