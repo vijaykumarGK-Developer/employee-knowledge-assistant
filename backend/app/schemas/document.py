@@ -12,6 +12,8 @@ class DocumentResponse(BaseModel):
     version: int
     uploaded_at: datetime
     is_active: bool
+    processing_status: str = "pending"
+    processing_error: str | None = None
 
     class Config:
         from_attributes = True

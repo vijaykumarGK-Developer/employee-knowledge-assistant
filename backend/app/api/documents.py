@@ -7,6 +7,7 @@ from app.models.user import User
 from app.models.document import Document
 from app.schemas.document import DocumentResponse, DocumentListResponse
 from app.utils.file_handler import validate_file, save_file
+from app.services.document_processor import process_document
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -30,6 +31,8 @@ def upload_document(
     )
     db.add(doc)
     db.commit()
+    db.refresh(doc)
+    process_document(doc.id)
     db.refresh(doc)
     return DocumentResponse.model_validate(doc)
 
@@ -89,6 +92,9 @@ def reprocess_document(
     if not doc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
     doc.version += 1
+    doc.processing_status = "pending"
     db.commit()
+    db.refresh(doc)
+    process_document(doc.id)
     db.refresh(doc)
     return DocumentResponse.model_validate(doc)

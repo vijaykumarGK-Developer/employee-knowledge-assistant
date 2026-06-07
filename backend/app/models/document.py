@@ -19,5 +19,7 @@ class Document(Base):
     version: Mapped[int] = mapped_column(Integer, default=1)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    processing_status: Mapped[str] = mapped_column(String(20), default="pending")
+    processing_error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     uploader = relationship("User", back_populates="documents")
