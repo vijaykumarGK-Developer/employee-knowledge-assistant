@@ -4,6 +4,8 @@ from app.core.database import SessionLocal
 from app.models.document import Document
 from app.services.extractors import extract_text
 from app.services.chunker import chunk_document
+from app.services.embeddings import generate_embeddings
+from app.services.vector_store import add_document_chunks, delete_document_chunks
 
 
 def process_document(doc_id: str) -> None:
@@ -19,8 +21,17 @@ def process_document(doc_id: str) -> None:
         pages = extract_text(doc.file_path, doc.file_type)
         chunks = chunk_document(pages, doc.id)
 
-        # Block 6 will add: generate embeddings + store in ChromaDB
-        # For now, we just mark as completed
+        if not chunks:
+            doc.processing_status = "completed"
+            doc.processing_error = None
+            db.commit()
+            return
+
+        texts = [c["text"] for c in chunks]
+        embeddings = generate_embeddings(texts)
+
+        add_document_chunks(chunks, embeddings, doc.title, doc.department)
+
         doc.processing_status = "completed"
         doc.processing_error = None
         db.commit()
@@ -34,3 +45,11 @@ def process_document(doc_id: str) -> None:
             db.commit()
     finally:
         db.close()
+
+
+def reprocess_document(doc_id: str) -> None:
+    try:
+        delete_document_chunks(doc_id)
+    except Exception:
+        pass
+    process_document(doc_id)

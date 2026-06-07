@@ -7,7 +7,8 @@ from app.models.user import User
 from app.models.document import Document
 from app.schemas.document import DocumentResponse, DocumentListResponse
 from app.utils.file_handler import validate_file, save_file
-from app.services.document_processor import process_document
+from app.services.document_processor import process_document, reprocess_document as reprocess_doc
+from app.services.vector_store import delete_document_chunks
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -79,6 +80,10 @@ def delete_document(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
     doc.is_active = False
     db.commit()
+    try:
+        delete_document_chunks(doc_id)
+    except Exception:
+        pass
     return {"status": "deleted"}
 
 
@@ -95,6 +100,6 @@ def reprocess_document(
     doc.processing_status = "pending"
     db.commit()
     db.refresh(doc)
-    process_document(doc.id)
+    reprocess_doc(doc.id)
     db.refresh(doc)
     return DocumentResponse.model_validate(doc)
