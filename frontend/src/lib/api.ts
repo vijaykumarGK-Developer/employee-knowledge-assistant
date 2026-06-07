@@ -49,6 +49,8 @@ export interface Document {
   version: number;
   uploaded_at: string;
   is_active: boolean;
+  processing_status: string;
+  processing_error: string | null;
 }
 
 export interface DocumentListResponse {

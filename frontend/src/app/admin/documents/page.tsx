@@ -158,17 +158,44 @@ export default function AdminDocumentsPage() {
                       <th className="pb-3 pr-4 font-medium">Type</th>
                       <th className="pb-3 pr-4 font-medium">Department</th>
                       <th className="pb-3 pr-4 font-medium">Version</th>
+                      <th className="pb-3 pr-4 font-medium">Status</th>
                       <th className="pb-3 pr-4 font-medium">Uploaded</th>
                       <th className="pb-3 font-medium">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {documents.map((doc) => (
+                    {documents.map((doc) => {
+                      const deptColors: Record<string, string> = {
+                        hr: "bg-pink-100 text-pink-700",
+                        engineering: "bg-blue-100 text-blue-700",
+                        finance: "bg-green-100 text-green-700",
+                        all: "bg-gray-100 text-gray-700",
+                      };
+                      const statusColors: Record<string, string> = {
+                        completed: "bg-green-100 text-green-700",
+                        processing: "bg-yellow-100 text-yellow-700",
+                        pending: "bg-gray-100 text-gray-500",
+                        failed: "bg-red-100 text-red-700",
+                      };
+                      return (
                       <tr key={doc.id} className="border-b last:border-0">
                         <td className="py-3 pr-4">{doc.title}</td>
-                        <td className="py-3 pr-4 uppercase">{doc.file_type}</td>
-                        <td className="py-3 pr-4 capitalize">{doc.department}</td>
+                        <td className="py-3 pr-4">
+                          <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium uppercase text-gray-600">
+                            {doc.file_type}
+                          </span>
+                        </td>
+                        <td className="py-3 pr-4">
+                          <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${deptColors[doc.department] || "bg-gray-100 text-gray-700"}`}>
+                            {doc.department}
+                          </span>
+                        </td>
                         <td className="py-3 pr-4">v{doc.version}</td>
+                        <td className="py-3 pr-4">
+                          <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[doc.processing_status] || "bg-gray-100 text-gray-500"}`}>
+                            {doc.processing_status}
+                          </span>
+                        </td>
                         <td className="py-3 pr-4 text-gray-500">
                           {new Date(doc.uploaded_at).toLocaleDateString()}
                         </td>
@@ -198,7 +225,8 @@ export default function AdminDocumentsPage() {
                           )}
                         </td>
                       </tr>
-                    ))}
+                    );
+                      })}
                   </tbody>
                 </table>
               </div>
