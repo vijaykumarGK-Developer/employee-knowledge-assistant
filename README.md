@@ -101,7 +101,6 @@ curl http://localhost/api/health
 | Page | Preview |
 |------|---------|
 | Login | ![Login](screenshots/login.png) |
-| Chat Interface | ![Chat](screenshots/chat.png) |
 
 ## API Overview
 
