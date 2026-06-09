@@ -1,7 +1,5 @@
 "use client";
 
-import SourceCard from "./SourceCard";
-
 interface MessageBubbleProps {
   role: string;
   content: string;
@@ -23,19 +21,7 @@ export default function MessageBubble({ role, content, sources }: MessageBubbleP
         >
           <p className="whitespace-pre-wrap text-sm leading-relaxed">{content}</p>
         </div>
-        {!isUser && sources && sources.sources && sources.sources.length > 0 && (
-          <div className="space-y-1 pl-1">
-            <p className="text-xs font-medium text-gray-500">Sources</p>
-            {sources.sources.map((s, i) => (
-              <SourceCard
-                key={i}
-                title={s.doc_title}
-                pageNum={s.page_num}
-                snippet={s.text_snippet}
-              />
-            ))}
-          </div>
-        )}
+
       </div>
     </div>
   );

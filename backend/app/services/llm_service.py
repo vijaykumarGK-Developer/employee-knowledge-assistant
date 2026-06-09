@@ -1,40 +1,26 @@
-from functools import lru_cache
-
-from transformers import pipeline
-
-from app.core.config import settings
-
-
-@lru_cache(maxsize=1)
-def _get_pipeline():
-    return pipeline(
-        "text2text-generation",
-        model=settings.LLM_MODEL,
-        max_new_tokens=256,
-        device=-1,
-    )
-
-
 def generate_answer(question: str, context_chunks: list[dict]) -> str:
-    context_parts = []
+    if not context_chunks:
+        return "I couldn't find any relevant information to answer your question."
+
+    grouped: dict[str, list[str]] = {}
     for c in context_chunks:
-        doc_info = f"[{c['doc_title']}]"
-        if c.get("page_num"):
-            doc_info += f" (page {c['page_num']})"
-        context_parts.append(f"{doc_info}: {c['text']}")
-    context = "\n\n".join(context_parts)
+        title = c.get("doc_title", "Document")
+        if title not in grouped:
+            grouped[title] = []
+        grouped[title].append(c["text"])
 
-    prompt = (
-        "Based on the following documents, answer the question concisely.\n"
-        "If the documents don't contain enough information, say so.\n\n"
-        f"Documents:\n{context}\n\n"
-        f"Question: {question}\n"
-        f"Answer:"
-    )
+    parts: list[str] = []
+    for title, texts in grouped.items():
+        seen = set()
+        unique = []
+        for t in texts:
+            t_clean = t.strip()
+            if t_clean and t_clean not in seen:
+                seen.add(t_clean)
+                unique.append(t_clean)
+        if unique:
+            content = "\n".join(f"  - {u}" for u in unique[:3])
+            parts.append(f"From {title}:\n{content}")
 
-    try:
-        pipe = _get_pipeline()
-        result = pipe(prompt, max_new_tokens=256, do_sample=False)
-        return result[0]["generated_text"].strip()
-    except Exception:
-        return "I'm sorry, I couldn't generate an answer at this time."
+    answer = "\n\n".join(parts) if parts else "No relevant information found."
+    return answer

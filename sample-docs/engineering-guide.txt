@@ -1,0 +1,28 @@
+Engineering Team — Development Guide
+
+1. Tech Stack
+   Backend: Python 3.14, FastAPI, PostgreSQL, SQLAlchemy
+   Frontend: Next.js 16, React, TypeScript, Tailwind CSS
+   AI/ML: Sentence-Transformers, ChromaDB, HuggingFace Transformers
+   Infrastructure: Docker, Docker Compose, Nginx
+
+2. Code Review Process
+   All pull requests require at least 2 approvals from senior engineers.
+   PRs must pass CI checks including linting, type checking, and tests.
+   Branch naming convention: feature/description, bugfix/description,
+   or hotfix/description.
+
+3. Deployment
+   Staging deploys automatically from the develop branch.
+   Production deploys from the main branch after QA approval.
+   Releases follow semantic versioning (MAJOR.MINOR.PATCH).
+
+4. API Standards
+   RESTful endpoints with /api/v1/ prefix. Pagination uses page/page_size
+   query parameters. All responses use JSON format. Errors follow RFC 7807
+   Problem Details format.
+
+5. Database
+   All new tables must have a UUID primary key, created_at and updated_at
+   timestamps. Migrations use Alembic. Queries must use indexed columns
+   for WHERE and JOIN conditions.

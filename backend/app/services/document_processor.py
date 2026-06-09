@@ -8,8 +8,10 @@ from app.services.embeddings import generate_embeddings
 from app.services.vector_store import add_document_chunks, delete_document_chunks
 
 
-def process_document(doc_id: str) -> None:
-    db: Session = SessionLocal()
+def process_document(doc_id: str, db: Session | None = None) -> None:
+    own_session = db is None
+    if db is None:
+        db = SessionLocal()
     try:
         doc = db.query(Document).filter(Document.id == doc_id).first()
         if not doc:
@@ -44,12 +46,13 @@ def process_document(doc_id: str) -> None:
             doc.processing_error = str(e)
             db.commit()
     finally:
-        db.close()
+        if own_session:
+            db.close()
 
 
-def reprocess_document(doc_id: str) -> None:
+def reprocess_document(doc_id: str, db: Session | None = None) -> None:
     try:
         delete_document_chunks(doc_id)
     except Exception:
         pass
-    process_document(doc_id)
+    process_document(doc_id, db)

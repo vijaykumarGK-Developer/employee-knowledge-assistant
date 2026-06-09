@@ -6,6 +6,7 @@ class RegisterRequest(BaseModel):
     password: str
     full_name: str
     department: str = "all"
+    role: str = "employee"
 
     @field_validator("email")
     @classmethod

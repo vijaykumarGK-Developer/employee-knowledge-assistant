@@ -90,7 +90,6 @@ def send_message(
         chat_id=chat_id,
         role="assistant",
         content=result["answer"],
-        sources={"sources": result["sources"]},
     )
     db.add(assistant_msg)
 
@@ -101,8 +100,6 @@ def send_message(
     db.refresh(assistant_msg)
 
     track_event(db, "question_asked", user_id=current_user.id, metadata={"question": body.content})
-    if not result["sources"]:
-        track_event(db, "unanswered_question", user_id=current_user.id, metadata={"question": body.content})
 
     return SendMessageResponse(
         message=MessageResponse.model_validate(user_msg),

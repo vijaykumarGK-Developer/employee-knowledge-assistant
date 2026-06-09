@@ -26,6 +26,7 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)) -> TokenRespo
         password_hash=get_password_hash(body.password),
         full_name=body.full_name,
         department=body.department,
+        role=body.role,
     )
     db.add(user)
     db.commit()

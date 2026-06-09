@@ -1,0 +1,21 @@
+Product Information — Employee Knowledge Assistant v2.0
+
+Overview
+The Employee Knowledge Assistant is an AI-powered internal knowledge base
+that helps employees find information from company documents using natural
+language questions.
+
+Key Features
+1. Document Management: Upload PDF, DOCX, TXT, and CSV files. Documents are
+   automatically processed and indexed for search.
+2. Smart Search: Uses Retrieval-Augmented Generation (RAG) to find relevant
+   information and generate accurate answers with source citations.
+3. Department Access Control: Documents are tagged by department (HR,
+   Engineering, Finance). Employees only see documents relevant to their
+   department plus "all" department documents.
+4. Analytics Dashboard: Tracks popular questions, unanswered queries, and
+   user activity for administrators.
+
+Version History
+v1.0 — Initial release with basic Q&A
+v2.0 — Added multi-department support, analytics, and feedback system

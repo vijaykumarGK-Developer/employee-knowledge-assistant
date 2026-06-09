@@ -34,7 +34,7 @@ def upload_document(
     db.add(doc)
     db.commit()
     db.refresh(doc)
-    process_document(doc.id)
+    process_document(doc.id, db)
     db.refresh(doc)
     track_event(db, "document_uploaded", user_id=admin.id, metadata={"doc_id": doc.id, "title": doc.title})
     return DocumentResponse.model_validate(doc)
@@ -102,6 +102,6 @@ def reprocess_document(
     doc.processing_status = "pending"
     db.commit()
     db.refresh(doc)
-    reprocess_doc(doc.id)
+    reprocess_doc(doc.id, db)
     db.refresh(doc)
     return DocumentResponse.model_validate(doc)

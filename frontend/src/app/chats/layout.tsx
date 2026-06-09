@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { chatApi, type Chat } from "@/lib/api";
 import ChatSidebar from "@/components/ChatSidebar";
@@ -75,6 +76,14 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
             <h1 className="text-sm font-semibold text-gray-700">Employee Knowledge Assistant</h1>
             <div className="flex items-center gap-3">
               <span className="text-xs text-gray-500">{user?.full_name}</span>
+              {user?.role === "admin" && (
+                <Link
+                  href="/admin/documents"
+                  className="rounded-md bg-blue-100 px-2.5 py-1 text-xs text-blue-700 hover:bg-blue-200"
+                >
+                  Admin
+                </Link>
+              )}
               <button
                 onClick={logout}
                 className="rounded-md bg-gray-200 px-2.5 py-1 text-xs hover:bg-gray-300"

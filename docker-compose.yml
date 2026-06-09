@@ -1,22 +1,29 @@
 services:
   postgres:
     image: postgres:15
+    container_name: eka-postgres
+    env_file: .env
     environment:
       POSTGRES_DB: employee_knowledge
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d employee_knowledge"]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 15s
+    networks:
+      - eka-network
+    restart: unless-stopped
 
   chromadb:
     image: chromadb/chroma:latest
+    container_name: eka-chromadb
     ports:
       - "8000:8000"
     volumes:
@@ -24,9 +31,26 @@ services:
     environment:
       IS_PERSISTENT: "TRUE"
       PERSIST_DIRECTORY: /chroma/chroma
+      ANONYMIZED_TELEMETRY: "FALSE"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; exit(0 if urllib.request.urlopen('http://localhost:8000/api/v1/heartbeat').status == 200 else 1)"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - eka-network
+    restart: unless-stopped
 
   backend:
     build: ./backend
+    container_name: eka-backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/employee_knowledge
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     ports:
       - "8001:8000"
     depends_on:
@@ -34,21 +58,64 @@ services:
         condition: service_healthy
       chromadb:
         condition: service_started
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/employee_knowledge
-      CHROMA_HOST: chromadb
-      CHROMA_PORT: 8000
     volumes:
       - uploads_data:/app/uploads
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; exit(0 if urllib.request.urlopen('http://localhost:8000/api/health').status == 200 else 1)"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - eka-network
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
+    container_name: eka-frontend
+    env_file: .env
     ports:
       - "3000:3000"
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http = require('http'); const r = http.get('http://localhost:3000/', res => { process.exit(res.statusCode === 200 ? 0 : 1); }); r.on('error', () => process.exit(1))"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - eka-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: eka-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+    networks:
+      - eka-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
   chroma_data:
   uploads_data:
+
+networks:
+  eka-network:
+    driver: bridge
